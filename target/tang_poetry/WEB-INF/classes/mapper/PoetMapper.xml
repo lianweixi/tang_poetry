@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lian.dao.PoetDao">
+	<select id="selectUserById1" resultType="hashmap" parameterType="Integer">
+		select * from tb_user where id = #{id}
+	</select>
+	<select id="selectUserById2" resultType="User" parameterType="Integer">
+		select * from tb_user where id = #{id}
+	</select>
+	<select id="selectUserById3" resultType="com.lian.model.User2"
+		parameterType="Integer">
+		select id,username as user2_username, password as
+		user2_password from
+		tb_user where id = #{id}
+	</select>
+	<insert id="insertUser" parameterType="User" statementType="PREPARED"
+		keyProperty="id" useGeneratedKeys="true">
+		insert into tb_user(username,
+		password) values(#{username}, #{password})
+	</insert>
+	<update id="updateUser" parameterType="User">
+		update tb_user set
+		username = #{username}, password = #{password} where id = #{id}
+	</update>
+	<delete id="deleteUser" parameterType="User">
+		delete from tb_user where
+		id = #{id}
+	</delete>
+	<resultMap id="userResultMap" type="User">
+		<id property="id" column="tb_user.id" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<association property="userDetail" javaType="UserDetail"
+			column="detail_id">
+			<id property="id" column="tb_user_detail.id" />
+			<result property="realname" column="realname" />
+			<result property="address" column="address" />
+		</association>
+	</resultMap>
+	<select id="selectUserUsingResultMap" resultMap="userResultMap"
+		parameterType="Integer">
+		select * from tb_user
+		inner join tb_user_detail on
+		tb_user.detail_id = tb_user_detail.id
+		where tb_user.id = #{id}
+	</select>
+
+	<resultMap type="User" id="userResultMap2">
+		<association property="userDetail" column="detail_id"
+			javaType="UserDetail" select="selectUserDetail">
+		</association>
+	</resultMap>
+	<select id="selectUserDetail" resultType="UserDetail">
+		select * from
+		tb_user_detail where id = #{id}
+	</select>
+	<select id="selectUserBySubQuery" resultMap="userResultMap2"
+		parameterType="int">
+		select * from tb_user where id = #{id}
+	</select>
+
+	<resultMap id="userWithCollectionMap" type="User">
+		<id property="id" column="user_id" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<association property="userDetail" javaType="UserDetail">
+			<id property="id" column="detail_id" />
+			<result property="realname" column="realname" />
+			<result property="address" column="address" />
+		</association>
+		<collection property="items" javaType="ArrayList" ofType="Item" column="id">
+			<id property="id" column="item_id" />
+			<result property="itemName" column="item_name" />
+		</collection>
+	</resultMap>
+	<resultMap id="userWithCollectionMap2" type="User">
+		<id property="id" column="id" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<association property="userDetail" column="detail_id" javaType="UserDetail" select="userWithCollectionMap2Sub1" />
+		<collection property="items" javaType="ArrayList" column="id" ofType="Item" select="userWithCollectionMap2Sub2"/>
+	</resultMap>
+	<select id="userWithCollectionMap2Sub1" resultType="UserDetail">
+		select * from tb_user_detail where id = #{id}
+	</select>
+	<select id="userWithCollectionMap2Sub2" resultType="Item">
+		select 
+		id,user_id,item_name as itemName
+		from tb_item where user_id = #{id}
+	</select>
+	<select id="selectUserWithCollection" resultMap="userWithCollectionMap2"
+		parameterType="int">
+		<!-- select
+		A.id as user_id,
+		A.username,
+		A.password,
+		B.id as detail_id,
+		B.realname,
+		B.address,
+		C.id as item_id,
+		C.item_name
+		from tb_user A
+		inner join tb_user_detail B on A.detail_id = B.id
+		inner join tb_item C on A.id = C.user_id
+		where A.id = #{id} -->
+		select * from tb_user where id = #{id}
+	</select>
+	
+	<select id="selectUsingForeach" resultType="User">
+		select * from tb_user where id in
+		<foreach collection="b" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	
+	
+</mapper>
